@@ -1,0 +1,24 @@
+ButtonHandler.ButtonMapper["MyCustomProperty"] = (handler, view) =>
+{
+    var nativeView = handler.NativeView;
+};
+
+ButtonHandler.ButtonMapper[nameof(IButton.BackgroundColor)] = (handler, view) =>
+{
+#if __IOS__
+     var nativeButton = handler.NativeView as UIKit.UIButton;
+
+     nativeButton.BackgroundColor = UIKit.UIColor.Blue;
+
+#else
+     ViewHandler.MapBackgroundColor(handler, view);
+#endif
+};
+
+SliderHandler.SliderMapper[nameof(ISlider.ThumbColor)] = (handler, view) =>
+{
+#if __IOS__
+     var nativeSlider = handler.NativeView as UIKit.UISlider;
+     nativeSlider.UpdateBackgroundColor(view);
+#endif
+};

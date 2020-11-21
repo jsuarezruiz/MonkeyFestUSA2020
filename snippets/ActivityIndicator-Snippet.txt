@@ -1,0 +1,95 @@
+public interface IActivityIndicator : IView
+{
+    bool IsRunning { get; }
+    Color Color { get; }
+}
+     
+public partial class ActivityIndicator : IActivityIndicator
+{
+
+}
+
+public class ActivityIndicator : Xamarin.Forms.View, IActivityIndicator
+{
+    public bool IsRunning { get; set; } = true;
+
+    public Color Color { get; set; }
+}
+
+public partial class ActivityIndicatorHandler
+{
+    public static PropertyMapper<IActivityIndicator, ActivityIndicatorHandler> ActivityIndicatorMapper = new PropertyMapper<IActivityIndicator, ActivityIndicatorHandler>(ViewHandler.ViewMapper)
+    {
+        [nameof(IActivityIndicator.IsRunning)] = MapIsRunning,
+        [nameof(IActivityIndicator.Color)] = MapColor
+    };
+
+    public static void MapIsRunning(ActivityIndicatorHandler handler, IActivityIndicator activityIndicator)
+    {
+        ViewHandler.CheckParameters(handler, activityIndicator);
+        handler.TypedNativeView?.UpdateIsRunning(activityIndicator);
+    }
+
+    public static void MapColor(ActivityIndicatorHandler handler, IActivityIndicator activityIndicator)
+    {
+        ViewHandler.CheckParameters(handler, activityIndicator);
+        handler.TypedNativeView?.UpdateColor(activityIndicator);
+    }
+
+    public ActivityIndicatorHandler() : base(ActivityIndicatorMapper)
+    {
+
+    }
+
+    public ActivityIndicatorHandler(PropertyMapper mapper) : base(mapper ?? ActivityIndicatorMapper)
+    {
+
+    }
+}
+
+public partial class ActivityIndicatorHandler : AbstractViewHandler<IActivityIndicator, ProgressBar>
+{
+    protected override ProgressBar CreateNativeView() => new ProgressBar(Context) { Indeterminate = true };
+}
+	
+public partial class ActivityIndicatorHandler : AbstractViewHandler<IActivityIndicator, UIActivityIndicatorView>
+{
+    protected override UIActivityIndicatorView CreateNativeView() => new UIActivityIndicatorView(CGRect.Empty)
+    {
+        ActivityIndicatorViewStyle = UIActivityIndicatorViewStyle.Gray
+    };
+}
+
+public static class ActivityIndicatorExtensions
+{
+    public static void UpdateIsRunning(this ProgressBar progressBar, IActivityIndicator activityIndicator) =>
+    progressBar.Visibility = activityIndicator.IsRunning ? ViewStates.Visible : ViewStates.Invisible;
+
+    public static void UpdateColor(this ProgressBar progressBar, IActivityIndicator activityIndicator)
+    {
+        Color color = activityIndicator.Color;
+
+        if (!color.IsDefault)
+            progressBar.IndeterminateDrawable?.SetColorFilter(color.ToNative(), FilterMode.SrcIn);
+        else
+            progressBar.IndeterminateDrawable?.ClearColorFilter();
+    }
+}	
+
+public static class ActivityIndicatorExtensions
+{
+    public static void UpdateIsRunning(this UIActivityIndicatorView activityIndicatorView, IActivityIndicator activityIndicator)
+    {
+        if (activityIndicator.IsRunning)
+            activityIndicatorView.StartAnimating();
+        else
+            activityIndicatorView.StopAnimating();
+    }
+
+    public static void UpdateColor(this UIActivityIndicatorView activityIndicatorView, IActivityIndicator activityIndicator)
+    {
+        activityIndicatorView.Color = activityIndicator.Color == Color.Default ? null : activityIndicator.Color.ToNative();
+    }
+}
+
+RegistrarHandlers.Handlers.Register<ActivityIndicator, ActivityIndicatorHandler>();

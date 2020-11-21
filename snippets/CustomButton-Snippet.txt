@@ -1,0 +1,46 @@
+using Xamarin.Forms;
+using Xamarin.Platform;
+using Xamarin.Platform.Handlers;
+using RegistrarHandlers = Xamarin.Platform.Registrar;
+
+namespace Sample
+{
+	public class CustomButton : Button
+	{
+		public CustomButton()
+		{
+			RegistrarHandlers.Handlers.Register<CustomButton, ButtonHandler>();
+
+			ButtonHandler.ButtonMapper[nameof(IButton.BackgroundColor)] = (handler, view) =>
+			{
+				if (view is CustomButton customButton)
+				{
+#if __IOS__
+				var nativeButton = handler.NativeView as UIKit.UIButton;
+
+				nativeButton.BackgroundColor = UIKit.UIColor.Red;
+#endif
+				}
+
+				ViewHandler.MapBackgroundColor(handler, view);
+			};
+
+			ButtonHandler.ButtonMapper[nameof(ShadowColor)] = (handler, view) =>
+			{
+				if (view is CustomButton customButton)
+				{
+#if __IOS__
+					var nativeButton = handler.NativeView as UIKit.UIButton;
+
+					nativeButton.Layer.ShadowColor = ShadowColor.ToCGColor();
+					nativeButton.Layer.ShadowOpacity = 1;
+					nativeButton.Layer.ShadowOffset = CoreGraphics.CGSize.Empty;
+					nativeButton.Layer.ShadowRadius = 10;
+#endif
+				}
+			};
+		}
+
+		public Color ShadowColor { get; set; }
+	}
+}
